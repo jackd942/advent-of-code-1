@@ -1,24 +1,46 @@
 defmodule Day1 do
-  @spec part_1([integer()]) :: integer()
-  def part_1(input), do: part_1(input, 0)
-  def part_1([], increases_count), do: increases_count
-  def part_1([_], increases_count), do: increases_count
+  defmodule Part1 do
+    def run(input) do
+      Enum.zip_reduce(input, Enum.drop(input, 1), 0, fn
+        a, b, increments_count when a < b ->
+          increments_count + 1
 
-  def part_1([a, b | tail], increases_count) when b > a,
-    do: part_1([b | tail], increases_count + 1)
+        _, _, increments_count ->
+          increments_count
+      end)
+    end
+  end
 
-  def part_1([_a, b | tail], increases_count), do: part_1([b | tail], increases_count)
+  defmodule Part2 do
+    def run(input) do
+      Enum.zip_reduce(input, Enum.drop(input, 3), 0, fn
+        a, b, increments_count when a < b ->
+          increments_count + 1
 
-  @spec part_2([integer()]) :: integer()
-  def part_2(input), do: part_2(input, 0)
-  def part_2([], increases_count), do: increases_count
-  def part_2([_], increases_count), do: increases_count
-  def part_2([_, _], increases_count), do: increases_count
-  def part_2([_, _, _], increases_count), do: increases_count
+        _, _, increments_count ->
+          increments_count
+      end)
+    end
+  end
 
-  def part_2([a, b, c, d | tail], increases_count) when d > a,
-    do: part_2([b, c, d | tail], increases_count + 1)
+  def input do
+    "inputs/1.txt"
+    |> File.stream!()
+    |> Stream.map(&String.to_integer(String.trim(&1)))
+  end
 
-  def part_2([_a, b, c, d | tail], increases_count),
-    do: part_2([b, c, d | tail], increases_count)
+  def example_input do
+    [
+      199,
+      200,
+      208,
+      210,
+      200,
+      207,
+      240,
+      269,
+      260,
+      263
+    ]
+  end
 end

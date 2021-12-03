@@ -1,0 +1,106 @@
+# Day 1
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1 do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      {instruction_atom, amount_string} =
+        case line do
+          "up " <> amount -> {:up, amount}
+          "down " <> amount -> {:down, amount}
+          "forward " <> amount -> {:forward, amount}
+        end
+
+      {
+        instruction_atom,
+        amount_string
+        |> String.trim()
+        |> String.to_integer()
+      }
+    end)
+  end
+end
+```
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+
+textarea = Kino.Input.textarea("Input:")
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Day1.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day2.Part1 do
+  def run(input) do
+    {depth, distance} =
+      Enum.reduce(input, {_depth = 0, _distance = 0}, fn
+        {:forward, amount}, {depth, distance} ->
+          {depth, distance + amount}
+
+        {:up, amount}, {depth, distance} ->
+          {depth - amount, distance}
+
+        {:down, amount}, {depth, distance} ->
+          {depth + amount, distance}
+      end)
+
+    depth * distance
+  end
+end
+```
+
+```elixir
+Day2.Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day2.Part2 do
+  def run(input) do
+    {depth, distance, _aim} =
+      Enum.reduce(input, {_depth = 0, _distance = 0, _aim = 0}, fn
+        {:forward, amount}, {depth, distance, aim} ->
+          depth = depth + aim * amount
+
+          {depth, distance + amount, aim}
+
+        {:up, amount}, {depth, distance, aim} ->
+          {depth, distance, aim - amount}
+
+        {:down, amount}, {depth, distance, aim} ->
+          {depth, distance, aim + amount}
+      end)
+
+    depth * distance
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day2.Part2.run(input)
+```

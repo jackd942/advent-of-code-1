@@ -1,0 +1,157 @@
+# Day 1
+
+## Common
+
+```elixir
+defmodule Day3 do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      line
+      |> String.split("", trim: true)
+      |> Enum.map(&String.to_integer/1)
+    end)
+  end
+
+  def counts(input) do
+    input
+    |> Enum.flat_map(fn digits ->
+      Enum.with_index(digits)
+    end)
+    |> Enum.group_by(&elem(&1, 1))
+    |> Enum.map(fn {_index, tuples} ->
+      {
+        Enum.count(tuples, &(elem(&1, 0) == 0)),
+        Enum.count(tuples, &(elem(&1, 0) == 1))
+      }
+    end)
+  end
+
+  def most_common(counts) do
+    Enum.map(counts, fn
+      {zeros, ones} when zeros > ones -> 0
+      {zeros, ones} when zeros < ones -> 1
+      {same, same} -> :equal
+    end)
+  end
+
+  def least_common(counts) do
+    Enum.map(counts, fn
+      {zeros, ones} when zeros > ones -> 1
+      {zeros, ones} when zeros < ones -> 0
+      {same, same} -> :equal
+    end)
+  end
+
+  def digits_to_decimal(digits) do
+    digits
+    |> Enum.join()
+    |> String.to_integer(2)
+  end
+end
+```
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+
+textarea = Kino.Input.textarea("Input:")
+```
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Day3.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day3.Part1 do
+  def run(input) do
+    gamma =
+      input
+      |> Day3.counts()
+      |> Day3.most_common()
+      |> Day3.digits_to_decimal()
+
+    epsilon =
+      input
+      |> Day3.counts()
+      |> Day3.least_common()
+      |> Day3.digits_to_decimal()
+
+    gamma * epsilon
+  end
+end
+```
+
+```elixir
+Day3.Part1.run(input)
+```
+
+## Part 2
+
+```elixir
+defmodule Day3.Part2 do
+  def run(input) do
+    oxygen_generator_rating = oxygen_generator_rating(input)
+
+    co2_scrubber_rating = co2_scrubber_rating(input)
+
+    oxygen_generator_rating * co2_scrubber_rating
+  end
+
+  def oxygen_generator_rating(input) do
+    reduce_by(input, &Day3.most_common/1, 1)
+  end
+
+  def co2_scrubber_rating(input) do
+    reduce_by(input, &Day3.least_common/1, 0)
+  end
+
+  #
+  # private
+  # 
+
+  defp reduce_by(input, common_fun, digit_if_equal) do
+    digits_count =
+      input
+      |> hd()
+      |> Enum.count()
+
+    Enum.reduce_while(0..(digits_count - 1), input, fn
+      _index, [_digits] = acc ->
+        {:halt, acc}
+
+      index, acc ->
+        counts1 = Day3.counts(acc)
+        common1 = common_fun.(counts1)
+
+        common_digit =
+          case Enum.at(common1, index) do
+            :equal -> digit_if_equal
+            digit -> digit
+          end
+
+        {:cont,
+         Enum.filter(acc, fn digits ->
+           Enum.at(digits, index) == common_digit
+         end)}
+    end)
+    |> hd()
+    |> Day3.digits_to_decimal()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day3.Part2.run(input)
+```

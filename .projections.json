@@ -1,5 +1,0 @@
-{
-  "lib/**/*.ex": {
-    "alternate": "test/{dirname}/{basename}_test.exs"
-  }
-}

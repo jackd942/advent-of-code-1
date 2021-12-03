@@ -1,0 +1,84 @@
+# Day 1
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1 do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split()
+    |> Enum.map(&String.to_integer(String.trim(&1)))
+  end
+end
+```
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Day1.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1.Part1 do
+  def run(input) do
+    Enum.zip_reduce(input, Enum.drop(input, 1), 0, fn
+      a, b, increments_count when a < b ->
+        increments_count + 1
+
+      _, _, increments_count ->
+        increments_count
+    end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day1.Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1.Part2 do
+  def run(input) do
+    Enum.zip_reduce(input, Enum.drop(input, 3), 0, fn
+      a, b, increments_count when a < b ->
+        increments_count + 1
+
+      _, _, increments_count ->
+        increments_count
+    end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day1.Part2.run(input)
+```

@@ -1,4 +1,6 @@
-# Day 1
+<!-- vim: syntax=markdown -->
+
+# Day _
 
 ## Common
 

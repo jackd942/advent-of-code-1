@@ -1,0 +1,178 @@
+# Day 1
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day4 do
+  def parse_input(raw_input) do
+    [raw_numbers | raw_boards] = String.split(raw_input, "\n\n")
+
+    numbers =
+      raw_numbers
+      |> String.split(",", trim: true)
+      |> Enum.map(&String.to_integer/1)
+
+    boards =
+      raw_boards
+      |> Enum.map(fn raw_board ->
+        raw_board
+        |> String.split("\n", trim: true)
+        |> Enum.map(fn raw_board_line ->
+          raw_board_line
+          |> String.split()
+          |> Enum.map(&String.to_integer/1)
+        end)
+        |> Board.new()
+      end)
+
+    {numbers, boards}
+  end
+end
+
+defmodule Board do
+  defstruct [:lines, :rows]
+
+  def new(lines) do
+    rows =
+      lines
+      |> List.zip()
+      |> Enum.map(&Tuple.to_list/1)
+
+    lines = map_all_items(lines, &{&1, false})
+    rows = map_all_items(rows, &{&1, false})
+
+    %__MODULE__{lines: lines, rows: rows}
+  end
+
+  def mark(%__MODULE__{lines: lines, rows: rows}, number) do
+    mark_fun = fn
+      {^number, _marked} -> {number, true}
+      tuple -> tuple
+    end
+
+    lines = map_all_items(lines, mark_fun)
+    rows = map_all_items(rows, mark_fun)
+
+    %__MODULE__{lines: lines, rows: rows}
+  end
+
+  def wins?(%__MODULE__{lines: lines, rows: rows}) do
+    Enum.find(lines, nil, fn line ->
+      Enum.all?(line, fn {_number, marked} -> marked end)
+    end) ||
+      Enum.find(rows, nil, fn row ->
+        Enum.all?(row, fn {_number, marked} -> marked end)
+      end)
+  end
+
+  def winning_score(%__MODULE__{lines: lines}, last_number) do
+    sum =
+      lines
+      |> List.flatten()
+      |> Enum.reject(&elem(&1, 1))
+      |> Enum.map(&elem(&1, 0))
+      |> Enum.sum()
+
+    sum * last_number
+  end
+
+  #
+  # private
+  # 
+
+  defp map_all_items(list_of_lists, fun) do
+    Enum.map(list_of_lists, fn list ->
+      Enum.map(list, fn item -> fun.(item) end)
+    end)
+  end
+end
+```
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Day4.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day4.Part1 do
+  def run({numbers, boards}) do
+    Enum.reduce_while(numbers, boards, fn number, boards ->
+      boards = Enum.map(boards, &Board.mark(&1, number))
+
+      case Enum.find(boards, nil, &Board.wins?(&1)) do
+        nil ->
+          {:cont, boards}
+
+        board ->
+          score = Board.winning_score(board, number)
+
+          {:halt, score}
+      end
+    end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day4.Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day4.Part2 do
+  def run({numbers, boards}) do
+    Enum.reduce_while(numbers, boards, fn number, boards ->
+      result =
+        Enum.reduce_while(0..Enum.count(boards), boards, fn index, boards ->
+          boards = List.update_at(boards, index, &Board.mark(&1, number))
+
+          if all_boards_wins?(boards) do
+            board = Enum.at(boards, index)
+
+            {:halt, Board.winning_score(board, number)}
+          else
+            {:cont, boards}
+          end
+        end)
+
+      case result do
+        [_ | _] = boards -> {:cont, boards}
+        score -> {:halt, score}
+      end
+    end)
+  end
+
+  def all_boards_wins?(boards), do: Enum.all?(boards, &Board.wins?/1)
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day4.Part2.run(input)
+```

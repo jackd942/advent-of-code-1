@@ -1,0 +1,70 @@
+# Day 1
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day4 do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split()
+    |> Enum.map(&String.to_integer(String.trim(&1)))
+  end
+end
+```
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Day4.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day4.Part1 do
+  def run(input) do
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day4.Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day4.Part2 do
+  def run(input) do
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day4.Part2.run(input)
+```

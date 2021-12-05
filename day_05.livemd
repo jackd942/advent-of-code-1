@@ -1,0 +1,123 @@
+<!-- vim: syntax=markdown -->
+
+# Day 5
+
+## Common
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day5 do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      [_all | matches] = Regex.run(~r{([0-9]+),([0-9]+) -> ([0-9]+),([0-9]+)}, line)
+      [x1, y1, x2, y2] = Enum.map(matches, &String.to_integer/1)
+      {{x1, y1}, {x2, y2}}
+    end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Day5.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day5.Part1 do
+  def run(input) do
+    Enum.reduce(input, %{}, fn
+      {{x, y1}, {x, y2}}, acc ->
+        Enum.reduce(y1..y2, acc, fn y, acc ->
+          Map.update(acc, {x, y}, 1, &(&1 + 1))
+        end)
+
+      {{x1, y}, {x2, y}}, acc ->
+        Enum.reduce(x1..x2, acc, fn x, acc ->
+          Map.update(acc, {x, y}, 1, &(&1 + 1))
+        end)
+
+      _, acc ->
+        acc
+    end)
+    |> Enum.count(&(elem(&1, 1) >= 2))
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day5.Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day5.Part2 do
+  def run(input) do
+    Enum.reduce(input, %{}, fn
+      {{x, y1}, {x, y2}}, acc ->
+        Enum.reduce(y1..y2, acc, fn y, acc ->
+          Map.update(acc, {x, y}, 1, &(&1 + 1))
+        end)
+
+      {{x1, y}, {x2, y}}, acc ->
+        Enum.reduce(x1..x2, acc, fn x, acc ->
+          Map.update(acc, {x, y}, 1, &(&1 + 1))
+        end)
+
+      {{x1, y1}, {x2, y2}}, acc when x1 < x2 and y1 < y2 ->
+        Enum.reduce(0..(x2 - x1), acc, fn diff, acc ->
+          Map.update(acc, {x1 + diff, y1 + diff}, 1, &(&1 + 1))
+        end)
+
+      {{x1, y1}, {x2, y2}}, acc when x1 > x2 and y1 < y2 ->
+        Enum.reduce(0..(x1 - x2), acc, fn diff, acc ->
+          Map.update(acc, {x1 - diff, y1 + diff}, 1, &(&1 + 1))
+        end)
+
+      {{x1, y1}, {x2, y2}}, acc when x1 < x2 and y1 > y2 ->
+        Enum.reduce(0..(x2 - x1), acc, fn diff, acc ->
+          Map.update(acc, {x1 + diff, y1 - diff}, 1, &(&1 + 1))
+        end)
+
+      {{x1, y1}, {x2, y2}}, acc when x1 > x2 and y1 > y2 ->
+        Enum.reduce(0..(x1 - x2), acc, fn diff, acc ->
+          Map.update(acc, {x1 - diff, y1 - diff}, 1, &(&1 + 1))
+        end)
+    end)
+    |> Enum.count(&(elem(&1, 1) >= 2))
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day5.Part2.run(input)
+```

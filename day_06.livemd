@@ -1,13 +1,15 @@
 <!-- vim: syntax=markdown -->
 
-# Day $1
+# Day 6
 
 ## Input
 
 <!-- livebook:{"reevaluate_automatically":true} -->
 
 ```elixir
-Mix.install([{:kino, github: "livebook-dev/kino"}])
+Mix.install([
+  {:kino, github: "livebook-dev/kino"}
+])
 ```
 
 <!-- livebook:{"reevaluate_automatically":true} -->
@@ -24,8 +26,30 @@ textarea = Kino.Input.textarea("Input:")
 defmodule Common do
   def parse_input(raw_input) do
     raw_input
-    |> String.split()
-    |> Enum.map(&String.to_integer(String.trim(&1)))
+    |> String.split(",", trim: true)
+    |> Enum.map(&String.to_integer/1)
+  end
+
+  def iterate(frequencies, 0) do
+    frequencies
+    |> Map.values()
+    |> Enum.sum()
+  end
+
+  def iterate(frequencies, days_left) do
+    zeros_count = frequencies[0] || 0
+
+    frequencies =
+      Enum.reduce(0..7, frequencies, fn time, frequencies ->
+        Map.put(frequencies, time, frequencies[time + 1] || 0)
+      end)
+
+    frequencies =
+      frequencies
+      |> Map.put(8, zeros_count)
+      |> Map.update(6, zeros_count, &(&1 + zeros_count))
+
+    iterate(frequencies, days_left - 1)
   end
 end
 ```
@@ -34,6 +58,9 @@ end
 
 ```elixir
 raw_input = Kino.Input.read(textarea)
+```
+
+```elixir
 input = Common.parse_input(raw_input)
 ```
 
@@ -44,6 +71,9 @@ input = Common.parse_input(raw_input)
 ```elixir
 defmodule Part1 do
   def run(input) do
+    input
+    |> Enum.frequencies()
+    |> Common.iterate(80)
   end
 end
 ```
@@ -61,6 +91,9 @@ Part1.run(input)
 ```elixir
 defmodule Part2 do
   def run(input) do
+    input
+    |> Enum.frequencies()
+    |> Common.iterate(256)
   end
 end
 ```

@@ -1,0 +1,89 @@
+<!-- vim: syntax=markdown -->
+
+# Day 7
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split(",", trim: true)
+    |> Enum.map(&String.to_integer(String.trim(&1)))
+    |> Enum.sort()
+  end
+
+  def minimal_fuel_cost(input, cost_fun) do
+    position_min = List.first(input)
+    position_max = List.last(input)
+
+    Enum.map(position_min..position_max, fn destination ->
+      Enum.reduce(input, 0, fn position, sum ->
+        distance = abs(destination - position)
+        fuel_cost = cost_fun.(distance)
+        sum + fuel_cost
+      end)
+    end)
+    |> Enum.min()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Common.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run(input) do
+    Common.minimal_fuel_cost(input, & &1)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run(input) do
+    Common.minimal_fuel_cost(input, &div(&1 * (&1 + 1), 2))
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

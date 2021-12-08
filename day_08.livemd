@@ -1,0 +1,195 @@
+<!-- vim: syntax=markdown -->
+
+# Day 8
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      [lhs, rhs] = String.split(line, "|", trim: true)
+
+      {
+        string_to_sets(lhs),
+        string_to_sets(rhs)
+      }
+    end)
+  end
+
+  def string_to_sets(string) do
+    string
+    |> String.split()
+    |> Enum.map(&string_to_set/1)
+  end
+
+  def string_to_set(string) do
+    string
+    |> String.split("", trim: true)
+    |> Enum.map(&String.to_atom/1)
+    |> MapSet.new()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Common.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run(input) do
+    input
+    |> Enum.map(fn {_lhs, rhs} ->
+      Enum.count(rhs, fn digit -> Enum.count(digit) in [2, 3, 4, 7] end)
+    end)
+    |> Enum.sum()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run(input) do
+    Enum.map(input, fn {signals, digits} ->
+      segments = [:a, :b, :c, :d, :e, :f, :g]
+
+      d1 = digit1(signals)
+      d4 = digit4(signals)
+      d7 = digit7(signals)
+      d8 = digit8(signals)
+
+      [a] = Enum.to_list(MapSet.difference(d7, d1))
+
+      f =
+        Enum.find(segments, fn segment ->
+          Enum.count(signals, fn signal ->
+            MapSet.member?(signal, segment)
+          end) == 9
+        end)
+
+      d2 = Enum.find(signals, &(MapSet.member?(&1, f) == false))
+      [c] = Enum.to_list(MapSet.delete(d1, f))
+
+      d6 = MapSet.delete(d8, c)
+
+      [b] =
+        d8
+        |> MapSet.difference(d2)
+        |> MapSet.delete(f)
+        |> MapSet.to_list()
+
+      [d] =
+        d4
+        |> MapSet.difference(d1)
+        |> MapSet.delete(b)
+        |> MapSet.to_list()
+
+      d0 = MapSet.delete(d8, d)
+
+      [d9] =
+        signals
+        |> Enum.filter(&(&1 not in [d0, d1, d2, d4, d6, d7, d8]))
+        |> Enum.filter(&(Enum.count(&1) == 6))
+
+      [e] =
+        d8
+        |> MapSet.difference(d9)
+        |> MapSet.to_list()
+
+      d3 =
+        d2
+        |> MapSet.delete(e)
+        |> MapSet.put(f)
+
+      d5 =
+        d8
+        |> MapSet.delete(c)
+        |> MapSet.delete(e)
+
+      [g] =
+        d9
+        |> MapSet.difference(d4)
+        |> MapSet.delete(a)
+        |> MapSet.to_list()
+
+      conversion = %{
+        d0 => 0,
+        d1 => 1,
+        d2 => 2,
+        d3 => 3,
+        d4 => 4,
+        d5 => 5,
+        d6 => 6,
+        d7 => 7,
+        d8 => 8,
+        d9 => 9
+      }
+
+      digits
+      |> Enum.map(fn digit -> conversion[digit] end)
+      |> Enum.join()
+      |> String.to_integer()
+    end)
+    |> Enum.sum()
+  end
+
+  def digit1(signals), do: find_with_segments_count(signals, 2)
+  def digit4(signals), do: find_with_segments_count(signals, 4)
+  def digit7(signals), do: find_with_segments_count(signals, 3)
+  def digit8(signals), do: find_with_segments_count(signals, 7)
+
+  def diff(digit1, digit2) do
+    digit1
+    |> MapSet.union(digit2)
+    |> MapSet.delete(digit1)
+    |> MapSet.delete(digit2)
+    |> Enum.count()
+  end
+
+  def find_with_segments_count(signals, segments_count) do
+    Enum.find(signals, &(Enum.count(&1) == segments_count))
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

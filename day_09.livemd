@@ -1,0 +1,135 @@
+<!-- vim: syntax=markdown -->
+
+# Day 9
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split()
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {line, y} ->
+      line
+      |> String.split("", trim: true)
+      |> Enum.with_index()
+      |> Enum.map(fn {num_as_str, x} ->
+        {
+          {x, y},
+          String.to_integer(num_as_str)
+        }
+      end)
+    end)
+    |> Enum.into(%{})
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Common.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run(input) do
+    input
+    |> Enum.filter(fn {{x, y}, value} ->
+      Enum.all?(
+        [
+          input[{x - 1, y}],
+          input[{x + 1, y}],
+          input[{x, y - 1}],
+          input[{x, y + 1}]
+        ],
+        &(&1 > value)
+      )
+    end)
+    |> Enum.map(&(elem(&1, 1) + 1))
+    |> Enum.sum()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run(input) do
+    {{max_x, _}, _} = Enum.max_by(input, fn {{x, _y}, _} -> x end)
+    {{_, max_y}, _} = Enum.max_by(input, fn {{_x, y}, _} -> y end)
+
+    input = Map.map(input, fn {_key, value} -> {value, nil} end)
+
+    Enum.reduce(0..max_x, input, fn x, input ->
+      Enum.reduce(0..max_y, input, fn y, input ->
+        find_basin(input, x, y, {x, y})
+      end)
+    end)
+    |> Enum.group_by(fn {_, {_, basin}} -> basin end)
+    |> Map.delete(nil)
+    |> Enum.map(fn {_key, value} -> Enum.count(value) end)
+    |> Enum.sort(:desc)
+    |> Enum.take(3)
+    |> Enum.product()
+  end
+
+  def find_basin(input, x, y, basin_start) do
+    case input[{x, y}] do
+      nil ->
+        input
+
+      {9, _} ->
+        input
+
+      {_height, nil} ->
+        input
+        |> Map.update!({x, y}, fn {height, _} -> {height, basin_start} end)
+        |> find_basin(x - 1, y, basin_start)
+        |> find_basin(x + 1, y, basin_start)
+        |> find_basin(x, y - 1, basin_start)
+        |> find_basin(x, y + 1, basin_start)
+
+      _ ->
+        input
+    end
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

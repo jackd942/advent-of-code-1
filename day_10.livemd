@@ -1,0 +1,150 @@
+<!-- vim: syntax=markdown -->
+
+# Day 10
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      line
+      |> String.split("", trim: true)
+      |> Enum.map(fn item ->
+        if item in ["(", "[", "{", "<"] do
+          {:open, item}
+        else
+          {:close, item}
+        end
+      end)
+    end)
+  end
+
+  def items_match?(open, close), do: closing(open) == close
+
+  def points(")"), do: 1
+  def points("]"), do: 2
+  def points("}"), do: 3
+  def points(">"), do: 4
+
+  def closing("("), do: ")"
+  def closing("<"), do: ">"
+  def closing("["), do: "]"
+  def closing("{"), do: "}"
+end
+
+defmodule Stack do
+  def push(stack, element), do: [element | stack]
+
+  def pop([]), do: {nil, []}
+  def pop([element | tail] = _stack), do: {element, tail}
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Common.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run(input) do
+    input
+    |> Enum.map(&corrupted/1)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&Common.points(elem(&1, 1)))
+    |> Enum.sum()
+  end
+
+  def corrupted(line) do
+    Enum.reduce_while(line, [], fn
+      {:open, item}, stack ->
+        {:cont, Stack.push(stack, item)}
+
+      {:close, item}, stack ->
+        {popped_item, stack} = Stack.pop(stack)
+
+        if Common.items_match?(popped_item, item) do
+          {:cont, stack}
+        else
+          {:halt, {:corrupted, item}}
+        end
+    end)
+    |> case do
+      {:corrupted, _} = result -> result
+      _ -> nil
+    end
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run(input) do
+    result =
+      input
+      |> Enum.filter(&(Part1.corrupted(&1) == nil))
+      |> Enum.map(&score_incomplete_line/1)
+      |> Enum.map(fn missing ->
+        Enum.reduce(missing, 0, fn opening, total ->
+          total * 5 + Common.points(Common.closing(opening))
+        end)
+      end)
+      |> Enum.sort()
+
+    Enum.at(result, div(Enum.count(result), 2))
+  end
+
+  def score_incomplete_line(line) do
+    Enum.reduce(line, [], fn
+      {:open, item}, stack ->
+        Stack.push(stack, item)
+
+      {:close, _item}, stack ->
+        stack
+        |> Stack.pop()
+        |> elem(1)
+    end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

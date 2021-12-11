@@ -25,7 +25,11 @@ defmodule Common do
   def parse_input(raw_input) do
     raw_input
     |> String.split()
-    |> Enum.map(&String.to_integer(String.trim(&1)))
+    |> Enum.map(fn line ->
+      line
+      |> String.trim()
+      |> String.to_integer()
+    end)
   end
 end
 ```

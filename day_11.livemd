@@ -1,0 +1,186 @@
+<!-- vim: syntax=markdown -->
+
+# Day 11
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split()
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {line, y} ->
+      line
+      |> String.trim()
+      |> String.split("", trim: true)
+      |> Enum.with_index()
+      |> Enum.map(fn {char, x} ->
+        {{x, y},
+         %Position{
+           energy: String.to_integer(char)
+         }}
+      end)
+    end)
+    |> Map.new()
+  end
+
+  def step(input, step) do
+    input =
+      input
+      |> Common.increment_all()
+      |> Common.flash(step)
+
+    flashes = Common.find_flashes(input, step)
+
+    Enum.reduce(flashes, input, fn {{x, y}, _position}, input ->
+      Common.spread_energy(input, x, y, step)
+    end)
+  end
+
+  def increment_all(input) do
+    Map.map(input, fn {_key, %Position{} = position} ->
+      Position.increment_energy(position)
+    end)
+  end
+
+  def flash(input, step) do
+    Map.map(input, fn
+      {_key, %Position{energy: 10} = position}
+      when last_flash != step ->
+        Position.flash(position, step)
+
+      {_key, value} ->
+        value
+    end)
+  end
+
+  def find_flashes(input, step) do
+    Map.filter(input, fn
+      {_key, %Position{last_flash: ^step}} -> true
+      _ -> false
+    end)
+  end
+
+  def spread_energy(input, x, y, step) do
+    case input[{x, y}] do
+      %Position{energy: 0, last_flash: ^step} ->
+        input
+        |> increase(x - 1, y - 1, step)
+        |> increase(x, y - 1, step)
+        |> increase(x + 1, y - 1, step)
+        |> increase(x - 1, y, step)
+        |> increase(x, y, step)
+        |> increase(x + 1, y, step)
+        |> increase(x - 1, y + 1, step)
+        |> increase(x, y + 1, step)
+        |> increase(x + 1, y + 1, step)
+    end
+  end
+
+  def increase(input, x, y, step) do
+    case input[{x, y}] do
+      nil ->
+        input
+
+      %Position{last_flash: ^step} ->
+        input
+
+      %Position{energy: 9} = position ->
+        input
+        |> Map.put({x, y}, Position.flash(position, step))
+        |> spread_energy(x, y, step)
+
+      position ->
+        Map.put(input, {x, y}, Position.increment_energy(position))
+    end
+  end
+end
+
+defmodule Position do
+  defstruct flashes: 0, last_flash: nil, energy: nil
+
+  def increment_energy(%__MODULE__{energy: energy} = position) do
+    %{position | energy: energy + 1}
+  end
+
+  def flash(%__MODULE__{flashes: flashes} = position, step) do
+    %{position | energy: 0, flashes: flashes + 1, last_flash: step}
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Common.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run(input) do
+    Enum.reduce(1..100, input, fn step, acc ->
+      Common.step(acc, step)
+    end)
+    |> Enum.map(fn {_key, %Position{flashes: flashes}} -> flashes end)
+    |> Enum.sum()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run(input) do
+    Enum.reduce_while(1..1_000, input, fn step, acc ->
+      acc = Common.step(acc, step)
+
+      if all_flashes?(acc, step) do
+        {:halt, step}
+      else
+        {:cont, acc}
+      end
+    end)
+  end
+
+  def all_flashes?(input, step) do
+    Enum.all?(input, fn {_key, %Position{last_flash: last_flash}} -> last_flash == step end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

@@ -1,0 +1,143 @@
+<!-- vim: syntax=markdown -->
+
+# Day 12
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      line
+      |> String.split("-", trim: true)
+    end)
+    |> Enum.reduce(%{}, fn [from, to], acc ->
+      acc
+      |> Map.update(from, [to], &[to | &1])
+      |> Map.update(to, [from], &[from | &1])
+    end)
+  end
+
+  def paths(_input, ["end" | path], _decision_fun), do: [Enum.reverse(path)]
+
+  def paths(input, [position | _tail] = path, decision_fun) do
+    case input[position] do
+      next_positions ->
+        Enum.reduce(next_positions, [], fn
+          next_position, paths ->
+            paths ++
+              if decision_fun.(path, next_position) do
+                paths(input, [next_position | path], decision_fun)
+              else
+                []
+              end
+        end)
+    end
+  end
+
+  def is_big_cave?(cave), do: cave =~ ~r/^[A-Z]+$/
+  def is_small_cave?(cave), do: not is_big_cave?(cave)
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Common.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run(input) do
+    input
+    |> Common.paths(["start"], &can_be_added?/2)
+    |> Enum.count()
+  end
+
+  def can_be_added?(_path, "start"), do: false
+  def can_be_added?(_path, "end"), do: true
+
+  def can_be_added?(path, position) do
+    Common.is_big_cave?(position) or not Enum.member?(path, position)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run(input) do
+    input
+    |> Common.paths(["start"], &can_be_added?/2)
+    |> Enum.count()
+  end
+
+  def can_be_added?(_path, "start"), do: false
+  def can_be_added?(_path, "end"), do: true
+
+  def can_be_added?(path, position) do
+    if Common.is_big_cave?(position) do
+      true
+    else
+      if already_has_two_small_caves?(path) do
+        if already_has_cave?(path, position) do
+          false
+        else
+          true
+        end
+      else
+        true
+      end
+    end
+  end
+
+  def already_has_cave?(path, position) do
+    Enum.member?(path, position)
+  end
+
+  def already_has_two_small_caves?(path) do
+    path
+    |> Enum.filter(&Common.is_small_cave?(&1))
+    |> Enum.frequencies()
+    |> Enum.any?(&(elem(&1, 1) == 2))
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

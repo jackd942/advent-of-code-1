@@ -1,0 +1,137 @@
+<!-- vim: syntax=markdown -->
+
+# Day 13
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(raw_input) do
+    [coords, folds] = String.split(raw_input, "\n\n", trim: true)
+
+    coords =
+      coords
+      |> String.split("\n", trim: true)
+      |> Enum.map(fn coord ->
+        [x, y] =
+          coord
+          |> String.split(",", trim: true)
+          |> Enum.map(&String.to_integer/1)
+
+        {x, y}
+      end)
+      |> MapSet.new()
+
+    folds =
+      folds
+      |> String.split("\n", trim: true)
+      |> Enum.map(fn
+        "fold along y=" <> y -> {:y, String.to_integer(y)}
+        "fold along x=" <> x -> {:x, String.to_integer(x)}
+      end)
+
+    {coords, folds}
+  end
+
+  def fold(input, {:x, fold_x}) do
+    Enum.reduce(input, MapSet.new(), fn {x, y}, acc ->
+      if x > fold_x do
+        MapSet.put(acc, {fold_x - (x - fold_x), y})
+      else
+        MapSet.put(acc, {x, y})
+      end
+    end)
+  end
+
+  def fold(input, {:y, fold_y}) do
+    Enum.reduce(input, MapSet.new(), fn {x, y}, acc ->
+      if y > fold_y do
+        MapSet.put(acc, {x, fold_y - (y - fold_y)})
+      else
+        MapSet.put(acc, {x, y})
+      end
+    end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Common.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run({coords, folds}) do
+    folds
+    |> Enum.take(1)
+    |> Enum.reduce(coords, &Common.fold(&2, &1))
+    |> Enum.count()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run({coords, folds}) do
+    folds
+    |> Enum.reduce(coords, &Common.fold(&2, &1))
+    |> pretty_print()
+  end
+
+  def pretty_print(coords) do
+    {max_x, _} = Enum.max_by(coords, &elem(&1, 0))
+    {_, max_y} = Enum.max_by(coords, &elem(&1, 1))
+
+    for y <- 0..max_y do
+      for x <- 0..max_x do
+        if MapSet.member?(coords, {x, y}) do
+          IO.write("#")
+        else
+          IO.write(".")
+        end
+      end
+
+      IO.puts("")
+    end
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

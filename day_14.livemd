@@ -1,0 +1,121 @@
+<!-- vim: syntax=markdown -->
+
+# Day 14
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(raw_input) do
+    [template, insertions] = String.split(raw_input, "\n\n", trim: true)
+
+    counts =
+      template
+      |> String.split("", trim: true)
+      |> Enum.frequencies()
+
+    template =
+      template
+      |> String.split("", trim: true)
+      |> Enum.chunk_every(2, 1, :discard)
+      |> Enum.map(&{&1, 1})
+      |> Map.new()
+
+    insertions =
+      insertions
+      |> String.split("\n", trim: true)
+      |> Map.new(fn insertion ->
+        [key, value] = String.split(insertion, " -> ", trim: true)
+        key = String.split(key, "", trim: true)
+
+        {key, value}
+      end)
+
+    {template, insertions, counts}
+  end
+
+  def run({template, insertions, counts}, steps) do
+    1..steps
+    |> Enum.reduce({template, counts}, fn _step, {template, counts} ->
+      step(template, insertions, counts)
+    end)
+    |> then(fn {_template, counts} ->
+      {{_, min}, {_, max}} = Enum.min_max_by(counts, &elem(&1, 1))
+      max - min
+    end)
+  end
+
+  def step(template, insertions, counts) do
+    Enum.reduce(template, {template, counts}, fn {[a, b] = pair, count}, {template, counts} ->
+      to_insert = insertions[pair]
+      new_pair_1 = [a, to_insert]
+      new_pair_2 = [to_insert, b]
+
+      template =
+        template
+        |> Map.update(new_pair_1, count, &(&1 + count))
+        |> Map.update(new_pair_2, count, &(&1 + count))
+        |> Map.update!(pair, &(&1 - count))
+
+      counts = Map.update(counts, to_insert, count, &(&1 + count))
+
+      {template, counts}
+    end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Common.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run(input), do: Common.run(input, 10)
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run(input), do: Common.run(input, 40)
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

@@ -34,7 +34,7 @@ defmodule Common do
       template
       |> String.split("", trim: true)
       |> Enum.chunk_every(2, 1, :discard)
-      |> Enum.map(&{&1, 1})
+      |> Enum.frequencies()
       |> Map.new()
 
     insertions =

@@ -1,6 +1,24 @@
 <!-- vim: syntax=markdown -->
 
-# Day $1
+# Day 1
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1 do
+  def parse_input(raw_input) do
+    raw_input
+    |> String.split("\n\n", trim: true)
+    |> Enum.map(fn group ->
+      group
+      |> String.split("\n", trim: true)
+      |> Enum.map(&String.to_integer/1)
+    end)
+  end
+end
+```
 
 ## Input
 
@@ -16,29 +34,11 @@ Mix.install([{:kino, github: "livebook-dev/kino"}])
 textarea = Kino.Input.textarea("Input:")
 ```
 
-## Common
-
-<!-- livebook:{"reevaluate_automatically":true} -->
-
-```elixir
-defmodule Common do
-  def parse_input(raw_input) do
-    raw_input
-    |> String.split()
-    |> Enum.map(fn line ->
-      line
-      |> String.trim()
-      |> String.to_integer()
-    end)
-  end
-end
-```
-
 <!-- livebook:{"reevaluate_automatically":true} -->
 
 ```elixir
 raw_input = Kino.Input.read(textarea)
-input = Common.parse_input(raw_input)
+input = Day1.parse_input(raw_input)
 ```
 
 ## Part 1
@@ -46,8 +46,11 @@ input = Common.parse_input(raw_input)
 <!-- livebook:{"reevaluate_automatically":true} -->
 
 ```elixir
-defmodule Part1 do
+defmodule Day1.Part1 do
   def run(input) do
+    input
+    |> Enum.map(&Enum.sum/1)
+    |> Enum.max()
   end
 end
 ```
@@ -55,7 +58,7 @@ end
 <!-- livebook:{"reevaluate_automatically":true} -->
 
 ```elixir
-Part1.run(input)
+Day1.Part1.run(input)
 ```
 
 ## Part 2
@@ -63,8 +66,13 @@ Part1.run(input)
 <!-- livebook:{"reevaluate_automatically":true} -->
 
 ```elixir
-defmodule Part2 do
+defmodule Day1.Part2 do
   def run(input) do
+    input
+    |> Enum.map(&Enum.sum/1)
+    |> Enum.sort(:desc)
+    |> Enum.take(3)
+    |> Enum.sum()
   end
 end
 ```
@@ -72,5 +80,5 @@ end
 <!-- livebook:{"reevaluate_automatically":true} -->
 
 ```elixir
-Part2.run(input)
+Day1.Part2.run(input)
 ```

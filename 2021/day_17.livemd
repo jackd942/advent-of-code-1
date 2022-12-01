@@ -1,0 +1,122 @@
+<!-- vim: syntax=markdown -->
+
+# Day 17
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Mix.install([{:kino, github: "livebook-dev/kino"}])
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(raw_input) do
+    [x1, x2, y1, y2] =
+      ~r/target area\: x=([-0-9]+)\.\.([-0-9]+), y=([-0-9]+)\.\.([-0-9]+)/
+      |> Regex.run(raw_input, capture: :all_but_first)
+      |> Enum.map(&String.to_integer/1)
+
+    %TargetArea{x1: x1, x2: x2, y1: y1, y2: y2}
+  end
+end
+
+defmodule Velocity do
+  defstruct [:x, :y]
+
+  def new(x, y), do: %__MODULE__{x: x, y: y}
+
+  def drag(%__MODULE__{x: x, y: y}) when x < 0, do: %__MODULE__{x: x + 1, y: y - 1}
+  def drag(%__MODULE__{x: x, y: y}) when x > 0, do: %__MODULE__{x: x - 1, y: y - 1}
+  def drag(%__MODULE__{x: x, y: y}), do: %__MODULE__{x: x, y: y - 1}
+end
+
+defmodule Probe do
+  defstruct [:x, :y, :velocity]
+
+  def new(velocity) do
+    %__MODULE__{x: 0, y: 0, velocity: velocity}
+  end
+
+  def step(%__MODULE__{x: x, y: y, velocity: velocity}) do
+    x = x + velocity.x
+    y = y + velocity.y
+    velocity = Velocity.drag(velocity)
+
+    %__MODULE__{x: x, y: y, velocity: velocity}
+  end
+
+  def in_target_area?(%__MODULE__{} = probe, %TargetArea{} = target_area) do
+    probe.x in target_area.x1..target_area.x2 and
+      probe.y in target_area.y1..target_area.y2
+  end
+
+  def under_target_area?(%__MODULE__{} = probe, %TargetArea{} = target_area) do
+    probe.y < target_area.y1 and probe.y < target_area.y2
+  end
+end
+
+defmodule TargetArea do
+  defstruct [:x1, :x2, :y1, :y2]
+
+  def distance_x(%__MODULE__{x1: x1, x2: x2}), do: min(abs(x1), abs(x2))
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+raw_input = Kino.Input.read(textarea)
+input = Common.parse_input(raw_input)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run(target_area) do
+    IO.inspect(target_area)
+
+    distance_x = TargetArea.distance_x(target_area) |> IO.inspect(label: :distance_x)
+    velocity_x = floor(:math.sqrt(distance_x * 2)) |> IO.inspect(label: :velocity_x)
+    max_y = 
+
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run(input) do
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

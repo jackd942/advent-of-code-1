@@ -1,6 +1,6 @@
-# Advent of Code 2021
+# Advent of Code
 
-I used Livebook, since it provides excelend development UX for tasks like this.
+I used Livebook, since it provides excelent development UX for tasks like this.
 
 ## Install
 

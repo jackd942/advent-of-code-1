@@ -1,0 +1,128 @@
+<!-- vim: syntax=markdown -->
+
+# Day 2
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.7.0"}
+])
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1 do
+  def parse_input(textarea) do
+    textarea
+    |> Kino.Input.read()
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn <<
+                     opponent::binary-size(1),
+                     " ",
+                     me::binary-size(1)
+                   >> ->
+      {opponent, me}
+    end)
+  end
+
+  def game_score(opponent, me)
+  def game_score(:rock, :paper), do: 6
+  def game_score(:paper, :scissors), do: 6
+  def game_score(:scissors, :rock), do: 6
+  def game_score(shape, shape), do: 3
+  def game_score(_, _), do: 0
+
+  def shape_score(:rock), do: 1
+  def shape_score(:paper), do: 2
+  def shape_score(:scissors), do: 3
+
+  def score(opponent, me), do: game_score(opponent, me) + shape_score(me)
+
+  def shape("A"), do: :rock
+  def shape("B"), do: :paper
+  def shape("C"), do: :scissors
+  def shape("X"), do: :rock
+  def shape("Y"), do: :paper
+  def shape("Z"), do: :scissors
+end
+```
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea = Kino.Input.textarea("Input:")
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+input = Day1.parse_input(textarea)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1.Part1 do
+  def run(input) do
+    input
+    |> Enum.map(fn {opponent, me} ->
+      opponent = Day1.shape(opponent)
+      me = Day1.shape(me)
+
+      Day1.score(opponent, me)
+    end)
+    |> Enum.sum()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day1.Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1.Part2 do
+  def run(input) do
+    input
+    |> Enum.map(fn {opponent, result} ->
+      opponent = Day1.shape(opponent)
+      result = result(result)
+      me = shape_for_result(opponent, result)
+
+      Day1.score(opponent, me)
+    end)
+    |> Enum.sum()
+  end
+
+  defp shape_for_result(opponent_shape, needed_result)
+  defp shape_for_result(shape, :draw), do: shape
+  defp shape_for_result(:rock, :win), do: :paper
+  defp shape_for_result(:rock, :lose), do: :scissors
+  defp shape_for_result(:paper, :win), do: :scissors
+  defp shape_for_result(:paper, :lose), do: :rock
+  defp shape_for_result(:scissors, :win), do: :rock
+  defp shape_for_result(:scissors, :lose), do: :paper
+
+  defp result("X"), do: :lose
+  defp result("Y"), do: :draw
+  defp result("Z"), do: :win
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day1.Part2.run(input)
+```

@@ -1,0 +1,118 @@
+<!-- vim: syntax=markdown -->
+
+# Day 3
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.7.0"}
+])
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1 do
+  def parse_input(textarea) do
+    textarea
+    |> Kino.Input.read()
+    |> String.split("\n", trim: true)
+  end
+
+  def priority(<<upper_case::utf8>>) when upper_case in 65..90, do: upper_case - 65 + 27
+  def priority(<<lower_case::utf8>>) when lower_case in 97..122, do: lower_case - 96
+
+  def to_mapset_of_chars(string) do
+    string
+    |> String.split("", trim: true)
+    |> MapSet.new()
+  end
+end
+```
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea =
+  Kino.Input.textarea("Input:",
+    default: """
+    vJrwpWtwJgWrhcsFMMfFFhFp
+    jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+    PmmdzqPrVvPwwTWBwg
+    wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+    ttgJtRGJQctTZtZT
+    CrZsJsPPZsGzwwsLwLmpwMDw
+    """
+  )
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+input = Day1.parse_input(textarea)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1.Part1 do
+  def run(input) do
+    input
+    |> Enum.map(fn rucksack ->
+      split_at = round(String.length(rucksack) / 2)
+      {first_half, second_half} = String.split_at(rucksack, split_at)
+
+      {
+        Day1.to_mapset_of_chars(first_half),
+        Day1.to_mapset_of_chars(second_half)
+      }
+    end)
+    |> Enum.map(fn {first, second} ->
+      first
+      |> MapSet.intersection(second)
+      |> Enum.map(&Day1.priority/1)
+      |> Enum.sum()
+    end)
+    |> Enum.sum()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day1.Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day1.Part2 do
+  def run(input) do
+    input
+    |> Enum.map(&Day1.to_mapset_of_chars/1)
+    |> Enum.chunk_every(3)
+    |> Enum.map(fn [rucksack1, rucksack2, rucksack3] ->
+      rucksack1
+      |> MapSet.intersection(rucksack2)
+      |> MapSet.intersection(rucksack3)
+      |> Enum.map(&Day1.priority/1)
+      |> Enum.sum()
+    end)
+    |> Enum.sum()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day1.Part2.run(input)
+```

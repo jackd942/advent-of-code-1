@@ -1,0 +1,110 @@
+<!-- vim: syntax=markdown -->
+
+# Day 4
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.7.0"}
+])
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day4 do
+  def parse_input(textarea) do
+    textarea
+    |> Kino.Input.read()
+    |> String.split("\n", trim: true)
+    |> Enum.map(&transform_line/1)
+  end
+
+  defp transform_line(line) do
+    [range1, range2] = String.split(line, ",", trim: true)
+
+    {
+      transform_range(range1),
+      transform_range(range2)
+    }
+  end
+
+  defp transform_range(range) do
+    [from, to] = String.split(range, "-", trim: true)
+
+    Range.new(
+      String.to_integer(from),
+      String.to_integer(to)
+    )
+  end
+end
+```
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea =
+  Kino.Input.textarea("Input:",
+    default: """
+    2-4,6-8
+    2-3,4-5
+    5-7,7-9
+    2-8,3-7
+    6-6,4-6
+    2-6,4-8
+    """
+  )
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+input = Day4.parse_input(textarea)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day4.Part1 do
+  def run(input) do
+    Enum.count(input, fn {range1, range2} ->
+      includes?(range1, range2) or includes?(range2, range1)
+    end)
+  end
+
+  defp includes?(range1, range2) do
+    range2.first in range1 and range2.last in range1
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day4.Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Day4.Part2 do
+  def run(input) do
+    Enum.count(input, fn {range1, range2} ->
+      not Range.disjoint?(range1, range2)
+    end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Day4.Part2.run(input)
+```

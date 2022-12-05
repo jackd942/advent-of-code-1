@@ -1,0 +1,169 @@
+<!-- vim: syntax=markdown -->
+
+# Day 5
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.7.0"}
+])
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(textarea) do
+    [stacks, moves] =
+      textarea
+      |> Kino.Input.read()
+      |> String.split("\n\n", trim: true)
+
+    {
+      parse_stacks(stacks),
+      parse_moves(moves)
+    }
+  end
+
+  defp parse_stacks(stacks) do
+    [positions | stacks] =
+      stacks
+      |> String.split("\n", trim: true)
+      |> Enum.reverse()
+
+    stacks_count =
+      positions
+      |> String.split()
+      |> List.last()
+      |> String.to_integer()
+
+    Enum.reduce(stacks, %{}, fn line, stacks ->
+      Enum.reduce(1..stacks_count, stacks, fn stack_index, stacks ->
+        grapheme_position = fn
+          1 -> 1
+          pos -> (pos - 1) * 4 + 1
+        end
+
+        grapheme_position = grapheme_position.(stack_index)
+        crate = String.at(line, grapheme_position)
+
+        case crate do
+          " " -> stacks
+          nil -> stacks
+          crate -> Map.update(stacks, stack_index, [crate], &[crate | &1])
+        end
+      end)
+    end)
+  end
+
+  defp parse_moves(moves) do
+    moves
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn line ->
+      ["move", count, "from", from, "to", to] = String.split(line)
+
+      %{
+        count: String.to_integer(count),
+        from: String.to_integer(from),
+        to: String.to_integer(to)
+      }
+    end)
+  end
+end
+```
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea =
+  Kino.Input.textarea("Input:",
+    default: """
+        [D]
+    [N] [C]
+    [Z] [M] [P]
+     1   2   3 
+
+    move 1 from 2 to 1
+    move 3 from 1 to 3
+    move 2 from 2 to 1
+    move 1 from 1 to 2
+    """
+  )
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+input = Common.parse_input(textarea)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run({stacks, moves}) do
+    moves
+    |> Enum.reduce(stacks, &move(&2, &1))
+    |> Enum.sort()
+    |> Enum.map(fn {_, [crate | _rest]} -> crate end)
+    |> Enum.join()
+  end
+
+  defp move(stacks, %{count: count, from: from, to: to}) do
+    Enum.reduce(1..count, stacks, fn _, stacks ->
+      crate =
+        stacks
+        |> Map.fetch!(from)
+        |> hd()
+
+      stacks
+      |> Map.update!(from, &tl/1)
+      |> Map.update!(to, fn stack -> [crate | stack] end)
+    end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run({stacks, moves}) do
+    moves
+    |> Enum.reduce(stacks, &move(&2, &1))
+    |> Enum.sort()
+    |> Enum.map(fn {_, [crate | _rest]} -> crate end)
+    |> Enum.join()
+  end
+
+  defp move(stacks, %{count: count, from: from, to: to} = move) do
+    crates =
+      stacks
+      |> Map.fetch!(from)
+      |> Enum.take(count)
+
+    stacks
+    |> Map.update!(from, &Enum.drop(&1, count))
+    |> Map.update!(to, fn stack -> crates ++ stack end)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

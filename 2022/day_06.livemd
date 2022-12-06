@@ -1,0 +1,89 @@
+<!-- vim: syntax=markdown -->
+
+# Day 6
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.7.0"}
+])
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(textarea) do
+    textarea
+    |> Kino.Input.read()
+  end
+
+  def index_of_first_unique_chunk(datastream_buffer, chunk_size) do
+    datastream_buffer
+    |> String.graphemes()
+    |> Enum.chunk_every(chunk_size, 1)
+    |> Enum.find_index(&unique_chunk?/1)
+    |> Kernel.+(chunk_size)
+  end
+
+  defp unique_chunk?(chunk) do
+    Enum.count(MapSet.new(chunk)) == Enum.count(chunk)
+  end
+end
+```
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea =
+  Kino.Input.textarea("Input:",
+    default: """
+    mjqjpqmgbljsphdztnvjfqwrcgsmlb
+    """
+  )
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+input = Common.parse_input(textarea)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run(datastream_buffer) do
+    Common.index_of_first_unique_chunk(datastream_buffer, 4)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run(datastream_buffer) do
+    Common.index_of_first_unique_chunk(datastream_buffer, 14)
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```

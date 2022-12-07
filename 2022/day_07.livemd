@@ -1,0 +1,187 @@
+<!-- vim: syntax=markdown -->
+
+# Day 7
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.7.0"}
+])
+```
+
+## Common
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Common do
+  def parse_input(textarea) do
+    root = %{name: "/", size: 0, children: %{}}
+
+    textarea
+    |> Kino.Input.read()
+    |> String.split("\n", trim: true)
+    |> parse_lines(root, [])
+  end
+
+  def filter(%{children: children} = dir, filter_fun) do
+    filtered_children = Enum.flat_map(children, fn {_key, value} -> filter(value, filter_fun) end)
+
+    if filter_fun.(dir) do
+      [dir | filtered_children]
+    else
+      filtered_children
+    end
+  end
+
+  def filter(file, filter_fun) do
+    if filter_fun.(file) do
+      [file]
+    else
+      []
+    end
+  end
+
+  defp parse_lines([], tree, _current_path), do: tree
+
+  defp parse_lines(["$ cd /" | rest], tree, _current_path) do
+    parse_lines(rest, tree, [])
+  end
+
+  defp parse_lines(["$ cd .." | rest], tree, current_path) do
+    current_path = Enum.slice(current_path, 0..-3)
+    parse_lines(rest, tree, current_path)
+  end
+
+  defp parse_lines(["$ cd " <> dir_name | rest], tree, current_path) do
+    current_path = current_path ++ [:children, dir_name]
+    parse_lines(rest, tree, current_path)
+  end
+
+  defp parse_lines(["$ ls" | rest], tree, current_path) do
+    parse_lines(rest, tree, current_path)
+  end
+
+  defp parse_lines(["dir " <> dir_name | rest], tree, current_path) do
+    dir = %{name: dir_name, children: %{}, size: 0}
+
+    tree = add_child(tree, current_path, dir)
+
+    parse_lines(rest, tree, current_path)
+  end
+
+  defp parse_lines([file_with_size | rest], tree, current_path) do
+    [file_size, file_name] = String.split(file_with_size)
+
+    file = %{name: file_name, size: String.to_integer(file_size)}
+
+    tree = add_child(tree, current_path, file)
+    tree = propagate_size(tree, current_path, file.size)
+
+    parse_lines(rest, tree, current_path)
+  end
+
+  defp propagate_size(tree, [], size), do: Map.update!(tree, :size, &Kernel.+(&1, size))
+
+  defp propagate_size(tree, current_path, size) do
+    tree = update_in(tree, current_path ++ [:size], &(&1 + size))
+    propagate_size(tree, Enum.slice(current_path, 0..-3), size)
+  end
+
+  defp add_child(tree, current_path, child) do
+    update_in(tree, current_path ++ [:children], &Map.put(&1, child.name, child))
+  end
+end
+```
+
+## Input
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+textarea =
+  Kino.Input.textarea("Input:",
+    default: """
+    $ cd /
+    $ ls
+    dir a
+    14848514 b.txt
+    8504156 c.dat
+    dir d
+    $ cd a
+    $ ls
+    dir e
+    29116 f
+    2557 g
+    62596 h.lst
+    $ cd e
+    $ ls
+    584 i
+    $ cd ..
+    $ cd ..
+    $ cd d
+    $ ls
+    4060174 j
+    8033020 d.log
+    5626152 d.ext
+    7214296 k
+    """
+  )
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+input = Common.parse_input(textarea)
+```
+
+## Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part1 do
+  def run(tree) do
+    tree
+    |> Common.filter(fn node ->
+      Map.has_key?(node, :children) && node.size <= 100_000
+    end)
+    |> Enum.map(& &1.size)
+    |> Enum.sum()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part1.run(input)
+```
+
+## Part 2
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+defmodule Part2 do
+  def run(tree) do
+    space_total = 70_000_000
+    free_space_required = 30_000_000
+    free_space = space_total - tree.size
+    space_to_free_up = free_space_required - free_space
+
+    tree
+    |> Common.filter(fn node ->
+      Map.has_key?(node, :children) && node.size >= space_to_free_up
+    end)
+    |> Enum.map(& &1.size)
+    |> Enum.sort(:asc)
+    |> hd()
+  end
+end
+```
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+Part2.run(input)
+```
